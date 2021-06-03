@@ -1,4 +1,4 @@
-# RKT
+# RKT ![version badge](https://img.shields.io/maven-metadata/v?metadataUrl=https://dimensional.jfrog.io/artifactory/maven/com/kyubot/rkt/maven-metadata.xml)
 
 Utilities for using rabbitmq java client in Kotlin, this was made with the amqp broker in mind.
 
@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.kyubot:rkt:1.0.0'
+  implementation 'com.kyubot:rkt:VERSION'
 }
 ```
 
@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.kyubot:rkt:1.0.0")
+  implementation("com.kyubot:rkt:VERSION")
 }
 ```
 
