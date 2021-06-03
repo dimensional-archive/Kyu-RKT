@@ -35,11 +35,10 @@ dependencies {
 
 This is pretty WIP
 
-###### Basic Publish & Consume
+###### Setup
 
 ```kotlin
 import com.kyubot.rkt.Amqp
-import com.kyubot.rkt.Queue
 
 fun main() {
   val broker = Amqp {
@@ -48,9 +47,17 @@ fun main() {
     // or for a sub group
     group("main".."sub")
   }
-
+  
   broker.connect()
+}
+```
 
+###### Basic Publish & Consume
+
+```kotlin
+import com.kyubot.rkt.Queue
+
+fun main() {
   // subscribe to some events.
   broker.on<Hello> {
     ack()
@@ -69,6 +76,9 @@ value class Hello(val content: String)
 ###### Data Callback
 
 ```kotlin
+import com.kyubot.rkt.Queue
+import com.kyubot.rkt.Callable
+
 fun main() {
   // call some data
   val result = broker.call(Operation("add")).await()
