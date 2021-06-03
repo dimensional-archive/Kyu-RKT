@@ -17,52 +17,31 @@ import kotlin.reflect.full.findAnnotation
 class Amqp(val resources: AmqpResources) : CoroutineScope {
 
   companion object {
-    val log: Logger = LoggerFactory.getLogger(Amqp::class.java)
+    private val log: Logger = LoggerFactory.getLogger(Amqp::class.java)
 
     /**
+     * Convenience method for creating an instance of [Amqp]
      *
+     * @param block Used for configuration a [AmqpResources] instance.
      */
-    operator fun invoke(builder: AmqpResources.Builder.() -> Unit): Amqp {
-      return Amqp(
-        AmqpResources.Builder()
-          .also(builder)
-          .create()
-      )
+    operator fun invoke(block: AmqpResources.Builder.() -> Unit = {}): Amqp {
+      val resources = AmqpResources.Builder()
+        .also(block)
+        .create()
+
+      return Amqp(resources)
     }
   }
 
-  /**
-   * The connection to the AMQP Broker
-   */
   private lateinit var connection: Connection
-
-  /**
-   * The amqp channel.
-   */
   private lateinit var _channel: Channel
-
-  /**
-   *
-   */
   private val _state = MutableStateFlow(BrokerState.Idle)
-
-  /**
-   * The callback queue
-   */
   private var callbackQueue: String? = null
-
-  /**
-   *
-   */
   private val consumers = mutableMapOf<String, Consumer<*>>()
-
-  /**
-   *
-   */
   private val waiters: MutableMap<String, Waiter<*>> = mutableMapOf()
 
   /**
-   *
+   * The current state of this broker.
    */
   val state: StateFlow<BrokerState>
     get() = _state
@@ -77,18 +56,25 @@ class Amqp(val resources: AmqpResources) : CoroutineScope {
     get() = Dispatchers.IO + Job()
 
   /**
+   * Uses [conn] as the rabbitmq connection for this broker..
    *
+   * @param conn The [Connection] to use, must be open.
    */
-  fun connect(conn: Connection) {
+  fun use(conn: Connection) {
     require(conn.isOpen) {
       "Provided connection isn't open"
     }
 
     connection = conn
+    setup()
   }
 
   /**
+   * Connects to a rabbitmq server using the supplied [url]
    *
+   * @param url The URL to use.
+   *
+   * @return The created [Connection]
    */
   fun connect(url: String = "amqp://localhost"): Connection {
     /* check for */
@@ -100,20 +86,35 @@ class Amqp(val resources: AmqpResources) : CoroutineScope {
     /* create a new connection */
     connection = resources.connectionFactory.newConnection(url)
 
-    /* add shutdown listener */
-    connection.addShutdownListener(::onShutdown)
-
-    _channel = connection.createChannel()
-    _state.tryEmit(BrokerState.Connected)
-    log.info("Connected to RabbitMQ.")
-
-    /* setup rpc callback queue */
-    setupCallback()
-
-    /* make sure to create the exchange */
-    _channel.exchangeDeclare(resources.group, resources.exchangeType.asString, true)
+    /* setup this broker */
+    setup()
 
     return connection
+  }
+
+  /**
+   * Sets up this broker for stuff, a connection must be present for this to work.
+   */
+  fun setup() {
+    require(::connection.isInitialized && connection.isOpen) {
+      "An existing connection must be present."
+    }
+
+    // add shutdown listener
+    connection.addShutdownListener(::onShutdown)
+
+    // initialize the channel if we haven't already.
+    if (!::_channel.isInitialized || !_channel.isOpen) {
+      _channel = connection.createChannel()
+      _state.tryEmit(BrokerState.Connected)
+      log.info("Connected to RabbitMQ.")
+    }
+
+    // setup rpc callback queue
+    setupCallback()
+
+    // make sure to create the exchange
+    _channel.exchangeDeclare(resources.group, resources.exchangeType.asString, true)
   }
 
   /**

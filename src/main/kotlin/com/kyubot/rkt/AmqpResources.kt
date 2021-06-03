@@ -17,35 +17,42 @@ data class AmqpResources(
   }
 
   class Builder {
+
     /**
-     *
+     * The exchange type to use, defaults to [ExchangeType.Direct]
      */
     val exchangeType: ExchangeType = ExchangeType.Direct
 
     /**
-     *
+     * [BinaryFormat] used for (de)serialization any published or received messages.
+     * Defaults to [ProtoBuf]
      */
     var format: BinaryFormat? = null
 
     /**
-     *
+     * The "group" this broker is bound to, defaults to "default".
      */
-    var group: String? = null
+    var group: String = "default"
 
     /**
-     *
+     * The "sub group" this broker is bound to.
      */
     var subGroup: String? = null
 
     /**
-     *
+     * [ConnectionFactory] used for creating new connections to the rabbitmq server.
+     */
+    var connectionFactory: ConnectionFactory? = null
+
+    /**
+     * Configures the [group] name of this broker.
      */
     fun group(name: String) {
       group = name
     }
 
     /**
-     *
+     * Configures the [group] and [subGroup] of this broker.
      */
     fun group(pair: Pair<String, String>) {
       group(pair.first)
@@ -59,19 +66,17 @@ data class AmqpResources(
       return this to other
     }
 
-    fun create(): AmqpResources {
-      require(group != null) {
-        "Group mustn't be null."
-      }
+    /**
+     * Creates an instance of [AmqpResources] with the configured values.
+     */
+    fun create(): AmqpResources = AmqpResources(
+      format = format ?: ProtoBuf { },
+      group = group,
+      subGroup = subGroup,
+      factory = connectionFactory,
+      exchangeType = exchangeType
+    )
 
-      return AmqpResources(
-        format = format ?: ProtoBuf { },
-        group = group!!,
-        subGroup = subGroup,
-        factory = null,
-        exchangeType = exchangeType
-      )
-    }
   }
 
 }

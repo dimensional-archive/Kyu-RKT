@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kyubot"
-version = "1.0.0"
+version = "1.0.1"
 val archivesBaseName = "rkt"
 
 repositories {
@@ -30,7 +30,7 @@ val sourcesJar = task<Jar>("sourcesJar") {
 }
 
 tasks.withType<KotlinCompile> {
-  kotlinOptions.jvmTarget = "16"
+  kotlinOptions.jvmTarget = "13"
   kotlinOptions.freeCompilerArgs = listOf(
     "-Xopt-in=kotlin.RequiresOptIn",
     "-Xopt-in=kotlinx.serialization.InternalSerializationApi",
