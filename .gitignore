@@ -1,0 +1,10 @@
+# IntelliJ User Settings
+.idea/
+
+# Gradle Cache
+.gradle/
+
+# Build
+out/
+bin/
+build/
