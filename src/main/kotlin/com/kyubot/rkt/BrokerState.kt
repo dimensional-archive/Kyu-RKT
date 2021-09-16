@@ -1,7 +1,7 @@
 package com.kyubot.rkt
 
 enum class BrokerState {
-  Idle,
-  Connected,
-  Disconnected
+    Idle,
+    Connected,
+    Disconnected
 }

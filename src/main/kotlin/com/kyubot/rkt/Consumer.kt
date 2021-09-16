@@ -11,27 +11,25 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 data class Consumer<T : Any>(val klass: KClass<T>, val broker: Amqp, val flow: MutableSharedFlow<Delivery>) {
+    /**
+     *
+     */
+    val callback: DeliverCallback = DeliverCallback { _, delivery ->
+        flow.tryEmit(delivery)
+    }
 
-  /**
-   *
-   */
-  val callback: DeliverCallback = DeliverCallback { _, delivery ->
-    flow.tryEmit(delivery)
-  }
-
-  /**
-   *
-   */
-  fun take(scope: CoroutineScope, block: suspend Message<T>.() -> Unit): Job {
-    return flow
-      .onEach {
-        broker.launch {
-          it
-            .runCatching { Message(this, broker, klass).block() }
-            .onFailure { }
-        }
-      }
-      .launchIn(scope)
-  }
-
+    /**
+     *
+     */
+    fun take(scope: CoroutineScope, block: suspend Message<T>.() -> Unit): Job {
+        return flow
+            .onEach {
+                broker.launch {
+                    it
+                        .runCatching { Message(this, broker, klass).block() }
+                        .onFailure { }
+                }
+            }
+            .launchIn(scope)
+    }
 }

@@ -1,8 +1,8 @@
 package com.kyubot.rkt
 
 enum class ExchangeType {
-  Direct,
-  Fanout;
+    Direct,
+    Fanout;
 
-  val asString: String get() = name.lowercase()
+    val asString: String get() = name.lowercase()
 }
