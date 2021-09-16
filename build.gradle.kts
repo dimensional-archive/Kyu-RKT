@@ -4,12 +4,13 @@ plugins {
   idea
   java
   `maven-publish`
-  kotlin("jvm") version "1.5.10"
-  kotlin("plugin.serialization") version "1.5.10"
+
+  kotlin("jvm") version "1.5.30"
+  kotlin("plugin.serialization") version "1.5.30"
 }
 
 group = "com.kyubot"
-version = "1.0.1"
+version = "1.0.2"
 val archivesBaseName = "rkt"
 
 repositories {
@@ -17,16 +18,16 @@ repositories {
 }
 
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.10")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.2.1")
-  implementation("com.rabbitmq:amqp-client:5.12.0")
+  implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.30")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2-native-mt")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.2.2")
+  implementation("com.rabbitmq:amqp-client:5.13.1")
 }
 
 /* task configuration */
 val sourcesJar = task<Jar>("sourcesJar") {
   archiveClassifier.set("sources")
-  from(sourceSets["main"].allJava)
+  from(sourceSets["main"].allSource)
 }
 
 tasks.withType<KotlinCompile> {
