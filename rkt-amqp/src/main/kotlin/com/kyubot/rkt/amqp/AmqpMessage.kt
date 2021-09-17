@@ -1,14 +1,15 @@
-package com.kyubot.rkt
+package com.kyubot.rkt.amqp
 
+import com.kyubot.rkt.core.Message
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.MessageProperties
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.serializer
-import kotlin.reflect.KClass
 
-data class Message<T : Any>(val delivery: Delivery, val broker: Amqp, val klass: KClass<T>) {
-    val data: T by lazy {
-        broker.resources.format.decodeFromByteArray(klass.serializer(), delivery.body)
+open class AmqpMessage<T>(override val broker: Amqp, val delivery: Delivery, val deserializer: DeserializationStrategy<T>) :
+    Message<T> {
+    override val data: T by lazy {
+        broker.resources.format.decodeFromByteArray(deserializer, delivery.body)
     }
 
     /**
@@ -36,12 +37,8 @@ data class Message<T : Any>(val delivery: Delivery, val broker: Amqp, val klass:
     fun reject(requeue: Boolean = false) =
         broker.channel.basicReject(delivery.envelope.deliveryTag, requeue)
 
-    inline fun <reified T : Any> reply(data: T) {
-        reply(T::class.serializer(), data)
-    }
-
-    fun <T : Any> reply(serializer: SerializationStrategy<T>, data: T) {
-        val bytes = broker.resources.format.encodeToByteArray(serializer, data)
+    override suspend fun <T> reply(serializationStrategy: SerializationStrategy<T>, message: T) {
+        val bytes = broker.resources.format.encodeToByteArray(serializationStrategy, message)
 
         broker.channel.basicPublish(
             "",

@@ -1,27 +1,17 @@
-package com.kyubot.rkt
+package com.kyubot.rkt.core
 
-import com.rabbitmq.client.ConnectionFactory
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.protobuf.ProtoBuf
 
-data class AmqpResources(
+data class BrokerResources(
     val format: BinaryFormat,
     val group: String,
     val subGroup: String? = null,
-    val factory: ConnectionFactory? = null,
-    val exchangeType: ExchangeType
+    val dispatcher: CoroutineDispatcher
 ) {
-    val connectionFactory by lazy {
-        factory ?: ConnectionFactory().also { it.useNio() }
-    }
-
     class Builder {
-
-        /**
-         * The exchange type to use, defaults to [ExchangeType.Direct]
-         */
-        val exchangeType: ExchangeType = ExchangeType.Direct
-
         /**
          * [BinaryFormat] used for (de)serialization any published or received messages.
          * Defaults to [ProtoBuf]
@@ -34,14 +24,14 @@ data class AmqpResources(
         var group: String = "default"
 
         /**
-         * The "sub group" this broker is bound to.
+         * The "subgroup" this broker is bound to.
          */
         var subGroup: String? = null
 
         /**
-         * [ConnectionFactory] used for creating new connections to the rabbitmq server.
+         * The [CoroutineDispatcher] to use.
          */
-        var connectionFactory: ConnectionFactory? = null
+        var dispatcher: CoroutineDispatcher = Dispatchers.Default
 
         /**
          * Configures the [group] name of this broker.
@@ -66,15 +56,13 @@ data class AmqpResources(
         }
 
         /**
-         * Creates an instance of [AmqpResources] with the configured values.
+         * Creates an instance of [BrokerResources] with the configured values.
          */
-        fun create(): AmqpResources = AmqpResources(
+        fun create(): BrokerResources = BrokerResources(
             format = format ?: ProtoBuf { },
             group = group,
             subGroup = subGroup,
-            factory = connectionFactory,
-            exchangeType = exchangeType
+            dispatcher = dispatcher
         )
-
     }
 }
